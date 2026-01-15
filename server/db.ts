@@ -1,6 +1,17 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import {
+  InsertUser,
+  users,
+  serviceProviders,
+  serviceCategories,
+  neighborhoods,
+  userProfiles,
+  type ServiceProvider,
+  type ServiceCategory,
+  type Neighborhood,
+  type UserProfile,
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +100,165 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/**
+ * Service Providers Queries
+ */
+export async function getServiceProviderById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(serviceProviders)
+    .where(eq(serviceProviders.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getApprovedProviders(filters?: { categoryId?: number; neighborhoodId?: number }) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const conditions = [eq(serviceProviders.status, "approved")];
+  
+  if (filters?.categoryId) {
+    conditions.push(eq(serviceProviders.categoryId, filters.categoryId));
+  }
+  if (filters?.neighborhoodId) {
+    conditions.push(eq(serviceProviders.neighborhoodId, filters.neighborhoodId));
+  }
+  
+  return db
+    .select()
+    .from(serviceProviders)
+    .where(and(...conditions));
+}
+
+export async function getPendingProviders() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(serviceProviders)
+    .where(eq(serviceProviders.status, "pending"));
+}
+
+export async function approveProvider(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  return db
+    .update(serviceProviders)
+    .set({ status: "approved", approvedAt: new Date() })
+    .where(eq(serviceProviders.id, id));
+}
+
+export async function rejectProvider(id: number, reason: string) {
+  const db = await getDb();
+  if (!db) return;
+  return db
+    .update(serviceProviders)
+    .set({ status: "rejected", rejectionReason: reason })
+    .where(eq(serviceProviders.id, id));
+}
+
+export async function toggleProviderStatus(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  const provider = await getServiceProviderById(id);
+  if (!provider) return;
+  return db
+    .update(serviceProviders)
+    .set({ isActive: provider.isActive ? 0 : 1 })
+    .where(eq(serviceProviders.id, id));
+}
+
+export async function toggleProviderFeatured(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  const provider = await getServiceProviderById(id);
+  if (!provider) return;
+  return db
+    .update(serviceProviders)
+    .set({ isFeatured: provider.isFeatured ? 0 : 1 })
+    .where(eq(serviceProviders.id, id));
+}
+
+export async function getProvidersByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(serviceProviders)
+    .where(eq(serviceProviders.userId, userId));
+}
+
+/**
+ * Service Categories Queries
+ */
+export async function getAllCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(serviceCategories);
+}
+
+export async function getCategoryById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(serviceCategories)
+    .where(eq(serviceCategories.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Neighborhoods Queries
+ */
+export async function getAllNeighborhoods() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(neighborhoods);
+}
+
+export async function getNeighborhoodById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(neighborhoods)
+    .where(eq(neighborhoods.id, id))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * User Profiles Queries
+ */
+export async function getUserProfile(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(userProfiles)
+    .where(eq(userProfiles.userId, userId))
+    .limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createOrUpdateUserProfile(
+  userId: number,
+  userType: "customer" | "provider" | "admin"
+) {
+  const db = await getDb();
+  if (!db) return;
+  
+  const existing = await getUserProfile(userId);
+  if (existing) {
+    await db
+      .update(userProfiles)
+      .set({ userType })
+      .where(eq(userProfiles.userId, userId));
+  } else {
+    await db.insert(userProfiles).values({ userId, userType });
+  }
+}
