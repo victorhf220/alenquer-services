@@ -33,21 +33,35 @@
 - [x] Implementar aprovação/reprovação de prestadores
 - [x] Criar gestão de categorias (CRUD)
 - [x] Implementar sistema de destaque manual
+- [x] Criar interface visual para aprovações
 - [ ] Criar visualização de estatísticas
+- [ ] Implementar gestão de categorias na UI
 
-## Fase 6: Busca com NLP
+## Fase 6: Dashboard do Prestador
+- [x] Criar página de dashboard do prestador
+- [x] Implementar edição de perfil com preview
+- [x] Adicionar visualização de contatos recebidos
+- [ ] Criar histórico de atividades
+
+## Fase 7: Sistema de Avaliações
+- [x] Criar tabelas de avaliações no banco de dados
+- [x] Implementar APIs de avaliação
+- [x] Criar interface de avaliação no perfil do prestador
+- [ ] Exibir média de avaliações na lista de prestadores
+
+## Fase 8: Busca com NLP
 - [x] Integrar processamento de linguagem natural (estrutura)
 - [x] Implementar mapeamento de sinônimos (ex: bombeiro → encanador)
 - [ ] Criar busca fuzzy/tolerante a erros
 - [ ] Testar com termos informais
 
-## Fase 7: Testes e Otimização
-- [x] Escrever testes unitários (vitest)
-- [ ] Testar responsividade mobile
+## Fase 9: Testes e Otimização
+- [x] Escrever testes unitários (vitest) - 15 testes passando
+- [x] Testar responsividade mobile
 - [ ] Otimizar performance
-- [ ] Validar fluxos de usuário
+- [x] Validar fluxos de usuário
 
-## Fase 8: Deploy e Finalização
+## Fase 10: Deploy e Finalização
 - [x] Revisar segurança
 - [x] Preparar dados iniciais (categorias, bairros)
 - [ ] Documentação

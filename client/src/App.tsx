@@ -8,14 +8,19 @@ import Home from "./pages/Home";
 import ProviderDetail from "./pages/ProviderDetail";
 import ProviderSignup from "./pages/ProviderSignup";
 import Dashboard from "./pages/Dashboard";
+import AdminApprovals from "./pages/AdminApprovals";
+import ProviderDashboard from "./pages/ProviderDashboard";
+import ProviderDetailPage from "./pages/ProviderDetailPage";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
-      <Route path={"/provider/:id"} component={ProviderDetail} />
+      <Route path={"/provider/:id"} component={ProviderDetailPage} />
       <Route path={"/provider-signup"} component={ProviderSignup} />
       <Route path={"/dashboard"} component={Dashboard} />
+      <Route path={"/admin/approvals"} component={AdminApprovals} />
+      <Route path={"/provider/dashboard"} component={ProviderDashboard} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

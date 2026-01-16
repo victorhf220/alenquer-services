@@ -18,6 +18,12 @@ import {
   rejectProvider,
   toggleProviderStatus,
   toggleProviderFeatured,
+  getProviderReviews,
+  getProviderAverageRating,
+  createReview,
+  logContact,
+  getProviderContacts,
+  getProviderContactCount,
   getDb,
 } from "./db";
 import { serviceProviders, serviceCategories, neighborhoods } from "../drizzle/schema";
@@ -369,6 +375,60 @@ export const appRouter = router({
     neighborhoods: publicProcedure.query(async () => {
       return await getAllNeighborhoods();
     }),
+  }),
+
+  // Reviews and ratings
+  reviews: router({
+    getByProvider: publicProcedure
+      .input(z.object({ providerId: z.number() }))
+      .query(async ({ input }) => {
+        return await getProviderReviews(input.providerId);
+      }),
+
+    getAverageRating: publicProcedure
+      .input(z.object({ providerId: z.number() }))
+      .query(async ({ input }) => {
+        return await getProviderAverageRating(input.providerId);
+      }),
+
+    create: protectedProcedure
+      .input(
+        z.object({
+          providerId: z.number(),
+          rating: z.number().min(1).max(5),
+          comment: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        await createReview(input.providerId, ctx.user.id, input.rating, input.comment);
+        return { success: true };
+      }),
+  }),
+
+  // Contact tracking
+  contacts: router({
+    logContact: publicProcedure
+      .input(z.object({ providerId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await logContact(input.providerId, ctx.user?.id, "whatsapp");
+        return { success: true };
+      }),
+
+    getProviderContacts: protectedProcedure
+      .input(z.object({ providerId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const provider = await getServiceProviderById(input.providerId);
+        if (!provider || provider.userId !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        return await getProviderContacts(input.providerId);
+      }),
+
+    getContactCount: publicProcedure
+      .input(z.object({ providerId: z.number() }))
+      .query(async ({ input }) => {
+        return await getProviderContactCount(input.providerId);
+      }),
   }),
 });
 

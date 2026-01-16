@@ -90,3 +90,32 @@ export const userProfiles = mysqlTable("user_profiles", {
 
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = typeof userProfiles.$inferInsert;
+/**
+ * Contact logs for tracking when users contact providers
+ */
+export const contactLogs = mysqlTable("contact_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  providerId: int("providerId").notNull(),
+  userId: int("userId"),
+  contactMethod: varchar("contactMethod", { length: 50 }).default("whatsapp"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ContactLog = typeof contactLogs.$inferSelect;
+export type InsertContactLog = typeof contactLogs.$inferInsert;
+
+/**
+ * Reviews and ratings for service providers
+ */
+export const reviews = mysqlTable("reviews", {
+  id: int("id").autoincrement().primaryKey(),
+  providerId: int("providerId").notNull(),
+  userId: int("userId").notNull(),
+  rating: int("rating").notNull(), // 1-5 stars
+  comment: text("comment"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = typeof reviews.$inferInsert;

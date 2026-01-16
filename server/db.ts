@@ -7,10 +7,14 @@ import {
   serviceCategories,
   neighborhoods,
   userProfiles,
+  reviews,
+  contactLogs,
   type ServiceProvider,
   type ServiceCategory,
   type Neighborhood,
   type UserProfile,
+  type Review,
+  type ContactLog,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -261,4 +265,74 @@ export async function createOrUpdateUserProfile(
   } else {
     await db.insert(userProfiles).values({ userId, userType });
   }
+}
+
+
+/**
+ * Reviews Queries
+ */
+export async function getProviderReviews(providerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.providerId, providerId));
+}
+
+export async function getProviderAverageRating(providerId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const providerReviews = await getProviderReviews(providerId);
+  
+  if (providerReviews.length === 0) return 0;
+  const sum = providerReviews.reduce((acc, r) => acc + r.rating, 0);
+  return Math.round((sum / providerReviews.length) * 10) / 10;
+}
+
+export async function createReview(
+  providerId: number,
+  userId: number,
+  rating: number,
+  comment?: string
+) {
+  const db = await getDb();
+  if (!db) return;
+  return db.insert(reviews).values({
+    providerId,
+    userId,
+    rating,
+    comment,
+  });
+}
+
+/**
+ * Contact Logs Queries
+ */
+export async function logContact(
+  providerId: number,
+  userId?: number,
+  contactMethod: string = "whatsapp"
+) {
+  const db = await getDb();
+  if (!db) return;
+  return db.insert(contactLogs).values({
+    providerId,
+    userId,
+    contactMethod,
+  });
+}
+
+export async function getProviderContacts(providerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(contactLogs)
+    .where(eq(contactLogs.providerId, providerId));
+}
+
+export async function getProviderContactCount(providerId: number) {
+  const contacts = await getProviderContacts(providerId);
+  return contacts.length;
 }
